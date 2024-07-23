@@ -122,5 +122,4 @@ public class DataController {
 		return new ResponseEntity<>(filerBank,HttpStatus.OK);
 	}
 
-
 }

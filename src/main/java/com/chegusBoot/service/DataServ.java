@@ -83,8 +83,6 @@ public class DataServ {
 	}
 
 
-
-
 	public DataBank fetchData(Long id) {
 		return repo.findById(id).get();
 	}
@@ -104,18 +102,10 @@ public class DataServ {
 		repo.deleteById(id);
 	}
 
-
-
-
 	public DataBranch fetchBranchData(Long id) {
 		return repo1.findById(id).get();
 	}
-
-
-
-
-
-
+	
 	public List<DataBank> filerBank(DataBank b) {
 		CriteriaBuilder cb = em.getCriteriaBuilder();
 		CriteriaQuery<DataBank> query = cb.createQuery(DataBank.class);
@@ -137,7 +127,4 @@ public class DataServ {
 
 		return em.createQuery(query).getResultList();
 	}
-
-
-
 }

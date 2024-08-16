@@ -24,7 +24,6 @@ import jakarta.persistence.criteria.CriteriaQuery;
 import jakarta.persistence.criteria.Predicate;
 import jakarta.persistence.criteria.Root;
 
-
 @Service
 public class DataServ {
 	@Autowired
@@ -39,37 +38,36 @@ public class DataServ {
 	@Autowired
 	private EntityManager em;
 
-	@CacheEvict(value = "Banks",allEntries = true)
+	@CacheEvict(value = "Banks", allEntries = true)
 	@Transactional
 	public void persistData(DataBank bank) {
-		System.out.println("Test........");
-		if(bank.getBid() != null) {
+		if (bank.getBid() != null) {
 			DataBank existBank = repo.findById(bank.getBid()).get();
 			for (DataBranch existBranch : existBank.getLst()) {
 				boolean branchExists = false;
 				for (DataBranch newBranch : bank.getLst()) {
-					if(Objects.equals(newBranch.getBranchId(), existBranch.getBranchId())) {
+					if (Objects.equals(newBranch.getBranchId(), existBranch.getBranchId())) {
 						branchExists = true;
 						for (DataPerson person : existBranch.getSublst()) {
 							boolean isPersonExists = false;
 							for (DataPerson newPerson : newBranch.getSublst()) {
-								if(Objects.equals(person.getPersonId(), newPerson.getPersonId())){
+								if (Objects.equals(person.getPersonId(), newPerson.getPersonId())) {
 									isPersonExists = true;
 								}
 							}
-							if(!isPersonExists) {
+							if (!isPersonExists) {
 								repo2.delete(person);
 							}
 						}
 					}
 
 				}
-				if(!branchExists) {
+				if (!branchExists) {
 					repo1.delete(existBranch);
 				}
 			}
-		} 
-		repo.save(bank); 
+		}
+		repo.save(bank);
 
 		for (DataBranch branch : bank.getLst()) {
 			branch.setBank(bank);
@@ -82,21 +80,16 @@ public class DataServ {
 		}
 	}
 
-
 	public DataBank fetchData(Long id) {
 		return repo.findById(id).get();
 	}
 
-
-
 	@Cacheable("Banks")
 	public List<DataBank> fetchAll() {
-		System.out.println("Hit to the dataBase...");
 		return repo.findAll();
 	}
 
-
-	@CacheEvict(value = "Banks",allEntries = true)
+	@CacheEvict(value = "Banks", allEntries = true)
 	@Transactional
 	public void removeData(Long id) {
 		repo.deleteById(id);
@@ -105,7 +98,7 @@ public class DataServ {
 	public DataBranch fetchBranchData(Long id) {
 		return repo1.findById(id).get();
 	}
-	
+
 	public List<DataBank> filerBank(DataBank b) {
 		CriteriaBuilder cb = em.getCriteriaBuilder();
 		CriteriaQuery<DataBank> query = cb.createQuery(DataBank.class);
@@ -113,18 +106,30 @@ public class DataServ {
 
 		List<Predicate> pre = new ArrayList<>();
 
-		if(b.getBid()!=null) {
+		if (b.getBid() != null) {
 			pre.add(cb.equal(root.get("bid"), b.getBid()));
 		}
-		if(b.getMainBranch()!=null) {
-			pre.add(cb.like(root.get("mainBranch"), "%"+b.getMainBranch()+ "%"));
+		if (b.getMainBranch() != null) {
+			pre.add(cb.like(root.get("mainBranch"), "%" + b.getMainBranch() + "%"));
 		}
-		if(b.getBname()!=null) {
-			pre.add(cb.like(root.get("bname"),"%"+ b.getBname()+"%"));
+		if (b.getBname() != null) {
+			pre.add(cb.like(root.get("bname"), "%" + b.getBname() + "%"));
 		}
 
 		query.where(pre.toArray(new Predicate[0]));
 
 		return em.createQuery(query).getResultList();
+	}
+
+	public List<DataPerson> getAllPersons(Integer start,Integer count) {
+		List<DataPerson> persons = repo2.getPersons(start, count);
+		List<DataPerson> listPersons = new ArrayList<>();
+		persons.forEach(person->{
+			DataPerson dataPerson = new DataPerson();
+			dataPerson.setPersonId(person.getPersonId());
+			dataPerson.setPersonName(person.getPersonName());
+			listPersons.add(dataPerson);
+		});
+		return listPersons.size() > 0 ? listPersons : null;
 	}
 }

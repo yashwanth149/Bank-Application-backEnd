@@ -12,12 +12,14 @@ import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 /*import org.springframework.web.servlet.view.RedirectView;      ---------redirecting page in springBoot instead Model....dont forget*/
 
 import com.chegusBoot.beans.BranchCity;
 import com.chegusBoot.beans.DataBank;
 import com.chegusBoot.beans.DataBranch;
+import com.chegusBoot.beans.DataPerson;
 import com.chegusBoot.beans.LoginData;
 import com.chegusBoot.service.DataServ;
 import com.chegusBoot.service.IndependentTable;
@@ -66,11 +68,15 @@ public class DataController {
 	}
 
 
+	@GetMapping("/getAllPersons")
+	public ResponseEntity<List<DataPerson>> getAllPersons(@RequestParam(value ="start",defaultValue = "0") Integer start,@RequestParam(value ="end",defaultValue = "10") Integer end) {
+		List<DataPerson> allPersons = serv1.getAllPersons(start,end);
+		return new ResponseEntity<>(allPersons,HttpStatus.OK);
+	}
 
 	// independent Tables
 	@PostMapping("/addbranch")
 	public void addEmp(@RequestBody BranchCity city){
-		System.out.println("Testin.........");
 		serv2.persistData(city);
 	} 
 
@@ -113,6 +119,7 @@ public class DataController {
 		List<LoginData> users = serv2.getUsers();
 		return new ResponseEntity<>(users,HttpStatus.OK);
 	}
+	
 
 	//search with different parameters...
 	

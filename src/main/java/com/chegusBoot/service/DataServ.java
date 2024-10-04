@@ -121,15 +121,35 @@ public class DataServ {
 		return em.createQuery(query).getResultList();
 	}
 
-	public List<DataPerson> getAllPersons(Integer start,Integer count) {
+	public List<DataPerson> getAllPersons(Integer start, Integer count) {
 		List<DataPerson> persons = repo2.getPersons(start, count);
 		List<DataPerson> listPersons = new ArrayList<>();
-		persons.forEach(person->{
+		persons.forEach(person -> {
 			DataPerson dataPerson = new DataPerson();
 			dataPerson.setPersonId(person.getPersonId());
 			dataPerson.setPersonName(person.getPersonName());
 			listPersons.add(dataPerson);
 		});
 		return listPersons.size() > 0 ? listPersons : null;
+	}
+
+	public List<DataPerson> getPersons() {
+		return repo2.findAll();
+	}
+	
+	public List<DataPerson> debounceSearchName(String b) {
+		CriteriaBuilder cb = em.getCriteriaBuilder();
+		CriteriaQuery<DataPerson> query = cb.createQuery(DataPerson.class);
+		Root<DataPerson> root = query.from(DataPerson.class);
+
+		List<Predicate> pre = new ArrayList<>();
+
+		if (b != null) {
+			pre.add(cb.like(root.get("personName"), "%" + b + "%"));
+		}
+
+		query.where(pre.toArray(new Predicate[0]));
+
+		return em.createQuery(query).getResultList();
 	}
 }

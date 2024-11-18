@@ -2,6 +2,7 @@ package com.chegusBoot.service;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 import java.util.Objects;
 
 import org.springframework.beans.factory.annotation.Autowired;
@@ -19,11 +20,15 @@ import com.chegusBoot.repository.DataRepo;
 import com.chegusBoot.repository.PersonRepo;
 
 import jakarta.persistence.EntityManager;
+import jakarta.persistence.TypedQuery;
 import jakarta.persistence.criteria.CriteriaBuilder;
 import jakarta.persistence.criteria.CriteriaQuery;
 import jakarta.persistence.criteria.Predicate;
 import jakarta.persistence.criteria.Root;
+import jakarta.persistence.criteria.Selection;
+import lombok.extern.slf4j.Slf4j;
 
+@Slf4j
 @Service
 public class DataServ {
 	@Autowired
@@ -136,7 +141,7 @@ public class DataServ {
 	public List<DataPerson> getPersons() {
 		return repo2.findAll();
 	}
-	
+
 	public List<DataPerson> debounceSearchName(String b) {
 		CriteriaBuilder cb = em.getCriteriaBuilder();
 		CriteriaQuery<DataPerson> query = cb.createQuery(DataPerson.class);
@@ -152,4 +157,43 @@ public class DataServ {
 
 		return em.createQuery(query).getResultList();
 	}
+
+	@SuppressWarnings("unchecked")
+	public <T> List<T> commonDropDown(Object obj) {
+		Class<T> clazz = null;
+		Map<Object, Object> mapUI = (Map<Object, Object>) obj;
+
+		Object object = mapUI.get("className");
+		Object object2 = mapUI.get("Params");
+		Integer start = (int) mapUI.get("start");
+		Integer count = (int) mapUI.get("count");
+
+		try {
+			clazz = (Class<T>) Class.forName("com.chegusBoot.beans." + object.toString());
+		} catch (Exception e) {
+			log.error("Error occurred while creating class instance", e);
+		}
+
+		CriteriaBuilder builder = em.getCriteriaBuilder();
+		CriteriaQuery<T> criteria = builder.createQuery(clazz);
+		Root<T> root = criteria.from(clazz);
+		List<Selection<?>> selections = new ArrayList<>();
+
+		if (object2 instanceof Map) {
+			Map<String, Object> paramsMap = (Map<String, Object>) object2;
+			for (Map.Entry<String, Object> entry : paramsMap.entrySet()) {
+				String paramName = entry.getKey();
+				selections.add(root.get(paramName));
+			}
+		}
+		criteria.select(root);
+		TypedQuery<T> query = em.createQuery(criteria);
+
+		query.setFirstResult(start);
+		query.setMaxResults(count);
+
+		List<T> resultList = query.getResultList();
+		return resultList;
+	}
+
 }

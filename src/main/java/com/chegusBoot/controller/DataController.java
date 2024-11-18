@@ -131,5 +131,13 @@ public class DataController {
 		
 		return new ResponseEntity<>(debounceSearchName, HttpStatus.OK);
 	}
+	
+	@PostMapping("/common-search")
+	public List<?> commonSearch(@RequestBody(required = false) Object obj) {
+		List<?> reponse = serv1.commonDropDown(obj);
+		return reponse;
+		
+	}
+	
 
 }

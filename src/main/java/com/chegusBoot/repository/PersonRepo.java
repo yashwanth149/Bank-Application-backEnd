@@ -10,7 +10,7 @@ import com.chegusBoot.beans.DataPerson;
 
 @Repository
 public interface PersonRepo extends JpaRepository<DataPerson, Long>{
-	default List<DataPerson> getPersons(Integer start,Integer count){
+	 default List<DataPerson> getPersons(Integer start,Integer count){
 		PageRequest dataPersons = PageRequest.of(start/count, count);
 		return findAll(dataPersons).getContent();
 	}

@@ -179,12 +179,17 @@ public class DataServ {
 		Root<T> root = criteria.from(clazz);
 		List<Selection<?>> selections = new ArrayList<>();
 
-		if (object2 instanceof Map) {
-			Map<String, Object> paramsMap = (Map<String, Object>) object2;
-			for (Map.Entry<String, Object> entry : paramsMap.entrySet()) {
-				String paramName = entry.getKey();
-				selections.add(root.get(paramName));
+		if (!Objects.isNull(object2)) {
+			if (object2 instanceof Map) {
+				Map<String, Object> paramsMap = (Map<String, Object>) object2;
+				for (Map.Entry<String, Object> entry : paramsMap.entrySet()) {
+					String paramName = entry.getKey();
+					selections.add(root.get(paramName));
+				}
 			}
+		}
+		else{
+			
 		}
 		criteria.select(root);
 		TypedQuery<T> query = em.createQuery(criteria);
@@ -195,5 +200,110 @@ public class DataServ {
 		List<T> resultList = query.getResultList();
 		return resultList;
 	}
+
+//	@SuppressWarnings("unchecked")
+//	public <T> List<T> onKeySearchDropDown(Object obj) {
+//		Class<T> clazz = null;
+//		Map<Object, Object> mapUI = (Map<Object, Object>) obj;
+//
+//		Object object = mapUI.get("className");
+//		Object object2 = mapUI.get("Params");
+//		Integer start = (int) mapUI.get("start");
+//		Integer count = (int) mapUI.get("count");
+//
+//		try {
+//			clazz = (Class<T>) Class.forName("com.chegusBoot.beans." + object.toString());
+//		} catch (Exception e) {
+//			log.error("Error occurred while creating class instance", e);
+//		}
+//
+//		CriteriaBuilder builder = em.getCriteriaBuilder();
+//		CriteriaQuery<T> criteria = builder.createQuery(clazz);
+//		Root<T> root = criteria.from(clazz);
+//		List<Selection<?>> selections = new ArrayList<>();
+//		List<Predicate> predicates = new ArrayList<>();
+//
+//		if (object2 != null && ((Map<String, Object>) object2).values().stream()
+//		        .anyMatch(value -> value != null && !value.toString().isEmpty())) {
+//		    Predicate predicate = builder.conjunction();
+//		    for (Map.Entry<String, Object> entry : ((Map<String, Object>) object2).entrySet()) {
+//		        String paramName = entry.getKey();
+//		        Object paramValue = entry.getValue();
+//		        if (paramValue != null) {
+////		            predicate = builder.and(predicate, builder.like(root.get(paramName), "%" + paramValue + "%"));
+//		            predicates.add(builder.like(builder.lower(root.get(paramName)), paramValue + "%"));
+//
+//		        }
+//		    }
+//		    criteria.where(predicate);
+//		} 
+//
+//		criteria.select(root);
+//		TypedQuery<T> query = em.createQuery(criteria);
+//
+//		query.setFirstResult(start);
+//		query.setMaxResults(count);
+//
+//		List<T> resultList = query.getResultList();
+//		return resultList;
+//	}
+	
+	@SuppressWarnings("unchecked")
+	public <T> List<T> onKeySearchDropDown(Object obj) {
+	    Class<T> clazz = null;
+	    Map<Object, Object> mapUI = (Map<Object, Object>) obj;
+
+	    Object object = mapUI.get("className");
+	    Object object2 = mapUI.get("Params");
+	    Integer start = (int) mapUI.get("start");
+	    Integer count = (int) mapUI.get("count");
+
+	    try {
+	        clazz = (Class<T>) Class.forName("com.chegusBoot.beans." + object.toString());
+	    } catch (Exception e) {
+	        log.error("Error occurred while creating class instance", e);
+	    }
+
+	    CriteriaBuilder builder = em.getCriteriaBuilder();
+	    CriteriaQuery<T> criteria = builder.createQuery(clazz);
+	    Root<T> root = criteria.from(clazz);
+
+	    List<Predicate> predicates = new ArrayList<>();
+
+	    if (object2 != null && ((Map<String, Object>) object2).values().stream()
+	            .anyMatch(value -> value != null && !value.toString().isEmpty())) {
+	        for (Map.Entry<String, Object> entry : ((Map<String, Object>) object2).entrySet()) {
+	            String paramName = entry.getKey();
+	            Object paramValue = entry.getValue();
+	            if (paramValue != null) {
+	                predicates.add(builder.like(builder.lower(root.get(paramName)), "%"+ paramValue + "%"));
+	            }
+	        }
+	    }
+
+	    if (!predicates.isEmpty()) {
+	        criteria.where(predicates.toArray(new Predicate[0]));
+	    }
+
+//	    TypedQuery<T> query = em.createQuery(criteria);
+//
+//	    query.setFirstResult(start);
+//	    query.setMaxResults(count);
+
+	    List<T> resultList = em.createQuery(criteria).getResultList();
+	    return resultList;
+	}
+//	 List<Predicate> predicates = new ArrayList<>();
+//	    
+//	    if (authorName != null) {
+//	        predicates.add(cb.equal(book.get("author"), authorName));
+//	    }
+//	    if (title != null) {
+//	        predicates.add(cb.like(book.get("title"), "%" + title + "%"));
+//	    }
+//	    cq.where(predicates.toArray(new Predicate[0]));
+//
+//	    return em.createQuery(cq).getResultList();
+//	
 
 }

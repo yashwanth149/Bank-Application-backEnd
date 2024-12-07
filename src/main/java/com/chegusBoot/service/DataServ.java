@@ -5,13 +5,15 @@ import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 
+import org.hibernate.query.Page;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.cache.annotation.CacheEvict;
 import org.springframework.cache.annotation.Cacheable;
+import org.springframework.data.domain.PageImpl;
+import org.springframework.data.domain.PageRequest;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import com.chegusBoot.beans.BranchCity;
 import com.chegusBoot.beans.DataBank;
 import com.chegusBoot.beans.DataBranch;
 import com.chegusBoot.beans.DataPerson;
@@ -187,9 +189,8 @@ public class DataServ {
 					selections.add(root.get(paramName));
 				}
 			}
-		}
-		else{
-			
+		} else {
+
 		}
 		criteria.select(root);
 		TypedQuery<T> query = em.createQuery(criteria);
@@ -247,63 +248,49 @@ public class DataServ {
 //		List<T> resultList = query.getResultList();
 //		return resultList;
 //	}
-	
+
 	@SuppressWarnings("unchecked")
 	public <T> List<T> onKeySearchDropDown(Object obj) {
-	    Class<T> clazz = null;
-	    Map<Object, Object> mapUI = (Map<Object, Object>) obj;
+		Class<T> clazz = null;
+		Map<Object, Object> mapUI = (Map<Object, Object>) obj;
 
-	    Object object = mapUI.get("className");
-	    Object object2 = mapUI.get("Params");
-	    Integer start = (int) mapUI.get("start");
-	    Integer count = (int) mapUI.get("count");
+		Object object = mapUI.get("className");
+		Object object2 = mapUI.get("Params");
+		String keyValue = (String) mapUI.get("key");
+		Integer start = (int) mapUI.get("start");
+		Integer count = (int) mapUI.get("count");
 
-	    try {
-	        clazz = (Class<T>) Class.forName("com.chegusBoot.beans." + object.toString());
-	    } catch (Exception e) {
-	        log.error("Error occurred while creating class instance", e);
-	    }
+		try {
+			clazz = (Class<T>) Class.forName("com.chegusBoot.beans." + object.toString());
+		} catch (Exception e) {
+			log.error("Error occurred while creating class instance", e);
+		}
 
-	    CriteriaBuilder builder = em.getCriteriaBuilder();
-	    CriteriaQuery<T> criteria = builder.createQuery(clazz);
-	    Root<T> root = criteria.from(clazz);
+		CriteriaBuilder builder = em.getCriteriaBuilder();
+		CriteriaQuery<T> criteria = builder.createQuery(clazz);
+		Root<T> root = criteria.from(clazz);
 
-	    List<Predicate> predicates = new ArrayList<>();
+		if (object2 != null) {
+			List<Predicate> orPrds = new ArrayList<>();
+			if (keyValue != null) {
+				Predicate orPrd = builder.or();
+				for (String key : ((Map<String, Object>) object2).keySet()) {
+					orPrd = builder.or(orPrd, builder.like(builder.lower(root.get(key)), "%" + keyValue + "%"));
+				}
+				orPrds.add(orPrd);
+			}
 
-	    if (object2 != null && ((Map<String, Object>) object2).values().stream()
-	            .anyMatch(value -> value != null && !value.toString().isEmpty())) {
-	        for (Map.Entry<String, Object> entry : ((Map<String, Object>) object2).entrySet()) {
-	            String paramName = entry.getKey();
-	            Object paramValue = entry.getValue();
-	            if (paramValue != null) {
-	                predicates.add(builder.like(builder.lower(root.get(paramName)), "%"+ paramValue + "%"));
-	            }
-	        }
-	    }
-
-	    if (!predicates.isEmpty()) {
-	        criteria.where(predicates.toArray(new Predicate[0]));
-	    }
-
-//	    TypedQuery<T> query = em.createQuery(criteria);
-//
-//	    query.setFirstResult(start);
-//	    query.setMaxResults(count);
-
-	    List<T> resultList = em.createQuery(criteria).getResultList();
-	    return resultList;
+			if (!orPrds.isEmpty()) {
+				criteria.where(builder.and(orPrds.toArray(new Predicate[0])));
+			}
+		}
+		PageRequest page = PageRequest.of(start, count);
+		
+		List<T> resultList = em.createQuery(criteria).getResultList();
+		return resultList;
+		
 	}
-//	 List<Predicate> predicates = new ArrayList<>();
-//	    
-//	    if (authorName != null) {
-//	        predicates.add(cb.equal(book.get("author"), authorName));
-//	    }
-//	    if (title != null) {
-//	        predicates.add(cb.like(book.get("title"), "%" + title + "%"));
-//	    }
-//	    cq.where(predicates.toArray(new Predicate[0]));
-//
-//	    return em.createQuery(cq).getResultList();
-//	
+	
+	
 
 }

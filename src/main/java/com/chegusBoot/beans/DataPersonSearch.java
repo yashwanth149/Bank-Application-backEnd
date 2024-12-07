@@ -10,14 +10,14 @@ import lombok.Setter;
 @Entity
 @Getter
 @Setter
-@Table(name="fea_persons")
+@Table(name="fea_datapersons")
 public class DataPersonSearch {
 	
 
-	@Column(name="PERSONNAME")
+	@Column(name="NAME")
 	private String personName;
 	
 	@Id
-	@Column(name="PERSONID")
+	@Column(name="ID")
 	private String personId;
 }

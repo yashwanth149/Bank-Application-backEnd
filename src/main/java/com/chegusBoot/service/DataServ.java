@@ -11,6 +11,7 @@ import org.springframework.cache.annotation.CacheEvict;
 import org.springframework.cache.annotation.Cacheable;
 import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.PageRequest;
+import org.springframework.data.repository.query.QueryByExampleExecutor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -199,6 +200,7 @@ public class DataServ {
 		query.setMaxResults(count);
 
 		List<T> resultList = query.getResultList();
+		System.out.println("Testing in common drop down...........................................");
 		return resultList;
 	}
 
@@ -285,12 +287,17 @@ public class DataServ {
 			}
 		}
 		PageRequest page = PageRequest.of(start, count);
-		
+//		
 		List<T> resultList = em.createQuery(criteria).getResultList();
 		return resultList;
-		
+
+//		TypedQuery<T> query = em.createQuery(criteria);
+//
+//		query.setFirstResult(start);
+//		query.setMaxResults(count);
+//
+//		List<T> resultList = query.getResultList();
+//		return resultList;
 	}
-	
-	
 
 }
